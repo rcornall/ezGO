@@ -1,0 +1,49 @@
+﻿------------Data PreProcessing-------------
+Split up all sgf data 3 ways:
+	80% for training – for actual training or our model (changing the weights)
+
+	10% for validation – used during training to measure the improvement every few mins or so (measure progress, not 100% necessary but is better to have)
+
+	10% testing – seperate testing data for after training to measure performance
+
+
+Get array of sgf files from training directory and val and test
+	eg: gameFilesArray=[/train/game1.sgf, /train/game2.sgf, ..  /train/game50000.sgf]
+
+
+Then we can make different sets of NPZ data files from these games:
+	training .npz files
+	val .npz files
+	test .npz files
+npz files are made from the numpy python library which is a compressed file of arrays
+
+
+How to make/format this npz data + how do we seperate different features of data:
+
+We need a Board class to store the state of a board, this will be done using a numpy 19x19 array.
+Read the games 1 by 1, playing the moves onto the board (np array)
+for each move place onto the board, increment no of moves, update whose turn it is, update LibertyTracker (complicated) etc. All this info (board + no of moves + liberties should be stored in 1 object(a class).
+
+return all this data (board + no of moves, liberties), plus the coordinates of next move in 1 item and add to list, do this repeatedly for all the moves of the game, and then for all games in train set.
+
+This gives a big list of data where each object in list has the above game information per move.
+
+With this list we can then get our features filled:
+
+We iterate over every object in the above list, extract the info required for each feature as a numpy array (most features are 19x19), and concatenate all ~20 feature arrays into 1  array containing all features.
+
+Make a pair containing these arrays and their corrensponding next move.
+Return this list and do this for every training CHUNK.
+
+Save them all on disk as npz files... 
+
+--------PRE PROCESSING DONE------------
+
+these NPZ files are ready for use directly for tensor flow training
+
+To use the files, we load them in random batches to speed up training,
+when training we use the 'features objects' as the Xs and the 'next moves' as the _Ys
+
+
+during training we save checkpoints every once in a while, this way if you stop training you can restore from a checkpoint and continue training from there. 
+
