@@ -1,8 +1,9 @@
-# sgfParser.py
-# parses sgf files, need to get posistions + next move
-# from an sgf game
-
-import os, fnmatch
+'''
+sgfParser.py - helper class
+parses sgf files, need to get board posistions  + next move
+from sgf games
+'''
+import sys, os, fnmatch
 import sgf # parsing sgf files
 import string
 
@@ -15,13 +16,19 @@ DIRECTORY = os.path.dirname(os.path.realpath(__file__))
 class SGFParser:
     # initialize..
     # walk through directories gathering all SGF files in one big list
-    def __init__(self):
+    def __init__(self, numberOfGames=99999999):
+        self.movesProcessed = 0
+        print ("Created Parser, searching for sgf files...")
         self.sgfFilesList = []
         searchPath = os.path.join(DIRECTORY, '..', 'trainingData')
         for root, dirnames, filenames in os.walk(searchPath):
             for filename in fnmatch.filter(filenames, '*.sgf'):
                 self.sgfFilesList.append(os.path.join(root, filename))
-        # print (self.sgfFilesList)
+                if len(self.sgfFilesList) >= numberOfGames:
+                    print ("Found %d games." % len(self.sgfFilesList))
+                    return
+        print ("Found %d games." % len(self.sgfFilesList))
+        return
 
 
     # Return a list of all the move info per each move from SGFs
@@ -29,6 +36,7 @@ class SGFParser:
     # this data will contain all the necessary info for storing the features later
     # ret: lists of MoveStates for All games (we will split up the data after)
     def get_move_data(self):
+        print ("\nBeginning Processing of games:")
         moveData = []
 
         for game in self.sgfFilesList:
@@ -41,7 +49,7 @@ class SGFParser:
     # go through a game and get all the required move info
     # ret: list of moveStates for 1 game
     def parse_game(self, sgfGame):
-        # list of Move info, contains MoveState objects
+        # list of Move info, contains MoveState objects, plus next moves
         moves = []
         collection = sgf.parse(sgfGame)
 
@@ -50,57 +58,69 @@ class SGFParser:
         for game in collection.children:
             for node in game:
                 # process each move into a Move object
-                move = self.process_node(moveState, node)
-                moves.append(move)
+                moveState = self.process_node(moveState, node)
+                moves.append(moveState)
 
         return moves
 
-    #  process 1 SGF move into a managable object 
+    #  process 1 SGF move into a managable object
     # ret: @MoveState
     def process_node(self, moveState, node):
         sgfMove = node.properties
+        # first get the next move and store in MoveState object
+        if node.next is not None:
+            sgfNextMove = node.next.properties
+            if 'B' in sgfNextMove:
+                nextStone = self.parse_coordinate(sgfNextMove.get('B')[0])
+            else:
+                nextStone = self.parse_coordinate(sgfNextMove.get('W')[0])
+            moveState.set_next_move(nextStone)
         # AB and AW are stones positions before the game starts (only on certain games)
         #   so you place all of these initial stones to the board then go from there
         # B and W are regular black and white move coordinates
-        # coords include the color of the stone
-        initialCoords = []
+        # 'stone' includes the color of the stone
+        initialStones = []
         if 'AB' in sgfMove:
             for stone in sgfMove.get('AB'):
                 coord = self.parse_coordinate(stone)
-                initialCoords.append((defs.COLOR.BLACK,coord))
+                initialStones.append((defs.COLOR.BLACK,coord))
         elif 'AW' in sgfMove:
             for stone in sgfMove.get('AW'):
                 coord = self.parse_coordinate(stone)
-                initialCoords.append((defs.COLOR.WHITE,coord))
+                initialStones.append((defs.COLOR.WHITE,coord))
         elif 'B' in sgfMove:
-            coord = self.parse_coordinate(sgfMove.get('B')[0])
-            coord = (defs.COLOR.BLACK, coord)
-            print(coord)
+            stone = self.parse_coordinate(sgfMove.get('B')[0])
+            stone = (defs.COLOR.BLACK, stone)
         elif 'W' in sgfMove:
-            coord = self.parse_coordinate(sgfMove.get('W')[0])
-            coord = (defs.COLOR.WHITE, coord)
-            print(coord)
+            stone = self.parse_coordinate(sgfMove.get('W')[0])
+            stone = (defs.COLOR.WHITE, stone)
         else:
-            return None
+            return moveState
         
-        if initialCoords:
-            print("SOME INITAIL COORDINATES ---------------------------------")
-            print(initialCoords)
-            # place initial stones...
-            moveState.place_initial_stones(initialCoords)
-            return moveState
-
+        if initialStones:
+            moveState.place_initial_stones(initialStones)
         else:
-            # play stone on board ...
-            moveState.play_stone(coord)
-            return moveState
+            moveState.play_stone(stone)
+        self.movesProcessed += 1
 
+        if self.movesProcessed % 100000 == 0:
+            print ("\tprocessing... %d moves done" % self.movesProcessed)
+        if self.movesProcessed % 550000 == 0:
+            print ("\n\texample board state for move %d..." % self.movesProcessed)
+            print (moveState.board)
+
+        return moveState   
 
     # return integer coordinates from letter coordinates
     def parse_coordinate(self, coord):
         if coord != "" and coord is not None:
-            x = string.lowercase.index(coord[0])
-            y = string.lowercase.index(coord[1])
+            if sys.version_info.major > 3   :
+                x = string.lowercase.index(coord[0])
+                y = string.lowercase.index(coord[1])
+            else:
+                x = string.ascii_lowercase.index(coord[0])
+                y = string.ascii_lowercase.index(coord[1])
+            
             # print(x,y)
             return (x, y)
 
@@ -110,6 +130,9 @@ class SGFParser:
 def test_sgf_parser():
     Parser = SGFParser()
     moveData = Parser.get_move_data()
+
+    FeatureMaker = FeatureMaker()
+
 
 if __name__ == '__main__':
     test_sgf_parser()
