@@ -62,15 +62,16 @@ class SGFParser:
         # AB and AW are stones positions before the game starts (only on certain games)
         #   so you place all of these initial stones to the board then go from there
         # B and W are regular black and white move coordinates
+        # coords include the color of the stone
         initialCoords = []
         if 'AB' in sgfMove:
             for stone in sgfMove.get('AB'):
                 coord = self.parse_coordinate(stone)
-                initialCoords.append(defs.COLOR.BLACK,coord)
+                initialCoords.append((defs.COLOR.BLACK,coord))
         elif 'AW' in sgfMove:
             for stone in sgfMove.get('AW'):
                 coord = self.parse_coordinate(stone)
-                initialCoords.append(defs.COLOR.WHITE,coord)
+                initialCoords.append((defs.COLOR.WHITE,coord))
         elif 'B' in sgfMove:
             coord = self.parse_coordinate(sgfMove.get('B')[0])
             coord = (defs.COLOR.BLACK, coord)
