@@ -21,6 +21,7 @@ class MoveState:
     def __init__(self, board=None):
         # next move coordinates played after this point in the game
         self.nextMove = ()
+        # whos turn to play the next stone
         self.turn = 0
         if board is not None:
             self.board = board
@@ -45,5 +46,6 @@ class MoveState:
         self.board[coordinates] = color
         return None
 
-    def set_next_move(self, coordinates):
-        self.nextMove = coordinates
+    def set_next_move(self, stone):
+        self.turn = stone[0]
+        self.nextMove = stone[1]

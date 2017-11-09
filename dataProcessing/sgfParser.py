@@ -44,6 +44,7 @@ class SGFParser:
             moves = self.parse_game(file.read())
             moveData.extend(moves)
 
+        print("Done processing games.\n")
         return moveData
 
     # go through a game and get all the required move info
@@ -53,50 +54,67 @@ class SGFParser:
         moves = []
         collection = sgf.parse(sgfGame)
 
-        moveState = MoveState()
         # always 1 game per file..
         for game in collection.children:
+            moveState = MoveState()
             for node in game:
                 # process each move into a Move object
-                moveState = self.process_node(moveState, node)
-                moves.append(moveState)
+                ret = self.process_node(moveState, node)
+                # print(moveState.board)
+                if ret is 0:
+                    moves.append(moveState)
 
         return moves
 
     #  process 1 SGF move into a managable object
-    # ret: @MoveState
+    # ret: 0 - success, 1 skip this move
     def process_node(self, moveState, node):
         sgfMove = node.properties
         # first get the next move and store in MoveState object
         if node.next is not None:
             sgfNextMove = node.next.properties
             if 'B' in sgfNextMove:
-                nextStone = self.parse_coordinate(sgfNextMove.get('B')[0])
+                coord = self.parse_coordinate(sgfNextMove.get('B')[0])
+                if not coord or len(coord) is 0:
+                    return 1
+                nextStone = (defs.COLOR.BLACK, coord)
             else:
-                nextStone = self.parse_coordinate(sgfNextMove.get('W')[0])
+                coord = self.parse_coordinate(sgfNextMove.get('W')[0])
+                if not coord or len(coord) is 0:
+                    return 1
+                nextStone = (defs.COLOR.WHITE, coord)
             moveState.set_next_move(nextStone)
+        else:
+            return 1
         # AB and AW are stones positions before the game starts (only on certain games)
         #   so you place all of these initial stones to the board then go from there
         # B and W are regular black and white move coordinates
         # 'stone' includes the color of the stone
         initialStones = []
+        stone = ()
         if 'AB' in sgfMove:
-            for stone in sgfMove.get('AB'):
-                coord = self.parse_coordinate(stone)
+            for move in sgfMove.get('AB'):
+                coord = self.parse_coordinate(move)
                 initialStones.append((defs.COLOR.BLACK,coord))
         elif 'AW' in sgfMove:
-            for stone in sgfMove.get('AW'):
-                coord = self.parse_coordinate(stone)
+            for move in sgfMove.get('AW'):
+                coord = self.parse_coordinate(move)
                 initialStones.append((defs.COLOR.WHITE,coord))
         elif 'B' in sgfMove:
-            stone = self.parse_coordinate(sgfMove.get('B')[0])
-            stone = (defs.COLOR.BLACK, stone)
+            coord = self.parse_coordinate(sgfMove.get('B')[0])
+            if coord is None or len(coord) is 0:
+                # then the move was a 'pass' or skip turn
+                return 0
+            stone = (defs.COLOR.BLACK, coord)
         elif 'W' in sgfMove:
-            stone = self.parse_coordinate(sgfMove.get('W')[0])
-            stone = (defs.COLOR.WHITE, stone)
+            coord = self.parse_coordinate(sgfMove.get('W')[0])
+            if coord is None or len(coord) is 0:
+                # then the move was a 'pass' or skip turn
+                return 0
+            stone = (defs.COLOR.WHITE, coord)
         else:
-            return moveState
-        
+            return 1
+
         if initialStones:
             moveState.place_initial_stones(initialStones)
         else:
@@ -105,15 +123,15 @@ class SGFParser:
 
         if self.movesProcessed % 100000 == 0:
             print ("\tprocessing... %d moves done" % self.movesProcessed)
-        if self.movesProcessed % 550000 == 0:
-            print ("\n\texample board state for move %d..." % self.movesProcessed)
-            print (moveState.board)
+        # if self.movesProcessed % 550000 == 0:
+        #     print ("\n\texample board state for move %d..." % self.movesProcessed)
+        #     print (moveState.board)
 
-        return moveState   
+        return 0   
 
     # return integer coordinates from letter coordinates
     def parse_coordinate(self, coord):
-        if coord != "" and coord is not None:
+        if coord != '' and coord is not None:
             if sys.version_info.major > 3   :
                 x = string.lowercase.index(coord[0])
                 y = string.lowercase.index(coord[1])
