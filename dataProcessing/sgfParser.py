@@ -32,12 +32,12 @@ class SGFParser:
             if done:
                 break
         
-        # Split into seperate test/train lists
+        # Split into seperate test/train lists, 90% train - 10% test
         totalLength = len(self.sgfFilesList)
         trainLength = int(totalLength - totalLength/10)
 
-        self.sgfTrainGames = self.sgfFilesList[trainLength:]
-        self.sgfTestGames = self.sgfFilesList[:trainLength]
+        self.sgfTrainGames = self.sgfFilesList[:trainLength]
+        self.sgfTestGames = self.sgfFilesList[trainLength:]
         return
 
 
@@ -51,7 +51,7 @@ class SGFParser:
 
         # done once there are no more games to go through
         if not self.sgfTrainGames:
-            print("Done processing training games.\n")
+            print("Done processing training games------------------------------\n\n")
             return None
 
         for i, game in enumerate(self.sgfTrainGames):
@@ -70,7 +70,7 @@ class SGFParser:
 
         # done once there are no more games to go through
         if not self.sgfTestGames:
-            print("Done processing games.\n")
+            print("Done processing test games-----------------------------------\n\n")
             return None
 
         for i, game in enumerate(self.sgfTestGames):

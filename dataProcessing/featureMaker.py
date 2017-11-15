@@ -15,7 +15,7 @@ from defines import Defines as defs
 PLANES=3
 
 def build_features(moveData):
-    print("Building features.\n")
+    print("Building features...")
 
     features = np.zeros([len(moveData), defs.BOARD_SIZE, defs.BOARD_SIZE, PLANES], dtype=np.uint8)
     nextMoves = np.zeros([len(moveData), defs.BOARD_SIZE, defs.BOARD_SIZE], dtype=np.uint8)

@@ -29,8 +29,12 @@ def save_data_to_disk(features, nextMoves, dataType, i):
     # Split up into test & train sets: (10% testing, 90% training)
     filename = os.path.join(OUT_DIRECTORY, "%s_data.%d" % (dataType, i))
     np.savez_compressed(filename, **save_dict)
-    print("saving train set %d..." % i)
+    print("saving %s set %d..." % (dataType, i))
     print("done.\n")
+    
+    # for testing purposes:
+    if i == 0 and dataType is "train":
+        TrainingTestData = save_dict
     return
 
 # load 1 train file to see if it matches the data before saving
@@ -53,21 +57,23 @@ if __name__ == '__main__':
 
     Parser = SGFParser(defs.HOW_MANY_GAMES_TO_USE)
 
-    # process 1000games at a time
-    moveData = Parser.get_some_train_data(2000)
+    # process 2000 games at a time
+    NUMBER_OF_GAMES = 2000
+    moveData = Parser.get_some_train_data(NUMBER_OF_GAMES)
     i = 0
     while moveData is not None:
         features, nextMoves = featureMaker.build_features(moveData)
         save_data_to_disk(features, nextMoves, "train", i)
-        moveData = Parser.get_some_train_data(2000)
+        moveData = Parser.get_some_train_data(NUMBER_OF_GAMES)
         i+=1
 
-    moveData = Parser.get_some_test_data(2000)
+    # do the same for test data:
+    moveData = Parser.get_some_test_data(NUMBER_OF_GAMES)
     i = 0
     while moveData is not None:
         features, nextMoves = featureMaker.build_features(moveData)
         save_data_to_disk(features, nextMoves, "test", i)
-        moveData = Parser.get_some_test_data(2000)
+        moveData = Parser.get_some_test_data(NUMBER_OF_GAMES)
         i+=1
 
     test_loading()
