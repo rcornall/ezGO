@@ -53,20 +53,21 @@ if __name__ == '__main__':
 
     Parser = SGFParser(defs.HOW_MANY_GAMES_TO_USE)
 
-    moveData = Parser.get_some_train_data(800)
+    # process 1000games at a time
+    moveData = Parser.get_some_train_data(2000)
     i = 0
     while moveData is not None:
         features, nextMoves = featureMaker.build_features(moveData)
         save_data_to_disk(features, nextMoves, "train", i)
-        moveData = Parser.get_some_train_data(800)
+        moveData = Parser.get_some_train_data(2000)
         i+=1
 
-    moveData = Parser.get_some_test_data(800)
+    moveData = Parser.get_some_test_data(2000)
     i = 0
     while moveData is not None:
         features, nextMoves = featureMaker.build_features(moveData)
         save_data_to_disk(features, nextMoves, "test", i)
-        moveData = Parser.get_some_test_data(800)
+        moveData = Parser.get_some_test_data(2000)
         i+=1
 
     test_loading()

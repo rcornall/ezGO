@@ -45,12 +45,12 @@ class SGFParser:
     # and the corresponding next move 
     # this data will contain all the necessary info for storing the features later
     # ret: lists of MoveStates for @amount number of games (we will split up the data after)
-    def get_some_train_data(self, amount=50):
+    def get_some_train_data(self, amount=200):
         print ("\nProcessing some games:")
         moveData = []
 
         # done once there are no more games to go through
-        if self.sgfTrainGames is None:
+        if not self.sgfTrainGames:
             print("Done processing training games.\n")
             return None
 
@@ -58,10 +58,10 @@ class SGFParser:
             file = open(game)
             moves = self.parse_game(file.read())
             moveData.extend(moves)
-            if i is amount:
+            if i >= amount:
                 break
 
-        del self.sgfTrainGames[amount:]
+        del self.sgfTrainGames[:amount]
         return moveData
 
     def get_some_test_data(self, amount=50):
@@ -69,7 +69,7 @@ class SGFParser:
         moveData = []
 
         # done once there are no more games to go through
-        if self.sgfTestGames is None:
+        if not self.sgfTestGames:
             print("Done processing games.\n")
             return None
 
@@ -77,10 +77,10 @@ class SGFParser:
             file = open(game)
             moves = self.parse_game(file.read())
             moveData.extend(moves)
-            if i is amount:
+            if i >= amount:
                 break
 
-        del self.sgfTestGames[amount:]
+        del self.sgfTestGames[:amount]
         return moveData
 
     def get_all_move_data(self):
