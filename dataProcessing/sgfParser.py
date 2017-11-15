@@ -21,21 +21,69 @@ class SGFParser:
         print ("Created Parser, searching for sgf files...")
         self.sgfFilesList = []
         searchPath = os.path.join(DIRECTORY, '..', 'trainingData')
+        done = False
         for root, dirnames, filenames in os.walk(searchPath):
             for filename in fnmatch.filter(filenames, '*.sgf'):
                 self.sgfFilesList.append(os.path.join(root, filename))
                 if len(self.sgfFilesList) >= numberOfGames:
                     print ("Found %d games." % len(self.sgfFilesList))
-                    return
-        print ("Found %d games." % len(self.sgfFilesList))
+                    done = True
+                    break
+            if done:
+                break
+        
+        # Split into seperate test/train lists
+        totalLength = len(self.sgfFilesList)
+        trainLength = int(totalLength - totalLength/10)
+
+        self.sgfTrainGames = self.sgfFilesList[trainLength:]
+        self.sgfTestGames = self.sgfFilesList[:trainLength]
         return
 
 
-    # Return a list of all the move info per each move from SGFs
+    # Return a list of all the move info per each move from amount # of SGFs
     # and the corresponding next move 
     # this data will contain all the necessary info for storing the features later
-    # ret: lists of MoveStates for All games (we will split up the data after)
-    def get_move_data(self):
+    # ret: lists of MoveStates for @amount number of games (we will split up the data after)
+    def get_some_train_data(self, amount=50):
+        print ("\nProcessing some games:")
+        moveData = []
+
+        # done once there are no more games to go through
+        if self.sgfTrainGames is None:
+            print("Done processing training games.\n")
+            return None
+
+        for i, game in enumerate(self.sgfTrainGames):
+            file = open(game)
+            moves = self.parse_game(file.read())
+            moveData.extend(moves)
+            if i is amount:
+                break
+
+        del self.sgfTrainGames[amount:]
+        return moveData
+
+    def get_some_test_data(self, amount=50):
+        print ("\nProcessing some games:")
+        moveData = []
+
+        # done once there are no more games to go through
+        if self.sgfTestGames is None:
+            print("Done processing games.\n")
+            return None
+
+        for i, game in enumerate(self.sgfTestGames):
+            file = open(game)
+            moves = self.parse_game(file.read())
+            moveData.extend(moves)
+            if i is amount:
+                break
+
+        del self.sgfTestGames[amount:]
+        return moveData
+
+    def get_all_move_data(self):
         print ("\nBeginning Processing of games:")
         moveData = []
 
@@ -122,7 +170,7 @@ class SGFParser:
         self.movesProcessed += 1
 
         if self.movesProcessed % 100000 == 0:
-            print ("\tprocessing... %d moves done" % self.movesProcessed)
+            print ("progress so far: %d moves done" % self.movesProcessed)
         # if self.movesProcessed % 550000 == 0:
         #     print ("\n\texample board state for move %d..." % self.movesProcessed)
         #     print (moveState.board)

@@ -17,7 +17,7 @@ PLANES=3
 def build_features(moveData):
     print("Building features.\n")
 
-    features = np.zeros([len(moveData), defs.BOARD_SIZE, defs.BOARD_SIZE, 3], dtype=np.uint8)
+    features = np.zeros([len(moveData), defs.BOARD_SIZE, defs.BOARD_SIZE, PLANES], dtype=np.uint8)
     nextMoves = np.zeros([len(moveData), defs.BOARD_SIZE, defs.BOARD_SIZE], dtype=np.uint8)
 
     for i, move in enumerate(moveData):
@@ -30,7 +30,7 @@ def build_features(moveData):
 def makeColorFeatures(moveData):
     # features is an array composed of 3 board sized arrays 
     # (player stones, opponent stones, empty spots)
-    features = np.zeros([defs.BOARD_SIZE, defs.BOARD_SIZE, 3], dtype=np.uint8)
+    features = np.zeros([defs.BOARD_SIZE, defs.BOARD_SIZE, PLANES], dtype=np.uint8)
     if moveData.turn == defs.COLOR.BLACK:
         features[moveData.board == defs.COLOR.BLACK, 0] = 1
         features[moveData.board == defs.COLOR.WHITE, 1] = 1

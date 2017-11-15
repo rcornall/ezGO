@@ -3,7 +3,7 @@
 class Defines:
     BOARD_SIZE = 19
 
-    HOW_MANY_GAMES_TO_USE = 5000
+    HOW_MANY_GAMES_TO_USE = 3000
 
     class COLOR:
         EMPTY = 0

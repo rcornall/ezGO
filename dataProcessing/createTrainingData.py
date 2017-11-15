@@ -16,31 +16,35 @@ import featureMaker
 DIRECTORY = os.path.dirname(os.path.realpath(__file__))
 OUT_DIRECTORY = os.path.join(DIRECTORY, '..', 'trainingData', 'processedData')
 
+SAVE_SIZE = 2**14 # save size to save training/testing data in chunks
+TrainingTestData = {} # for testing purposes..
+
 # store the data as compressed numpy arrays
-def save_data_to_disk(features, nextMoves):
-    sys.stdout.write("Saving data to disk...")
+def save_data_to_disk(features, nextMoves, dataType, i):
+    print("Saving data to disk...")
     save_dict = {}
     save_dict['features'] = features
     save_dict['next_moves'] = nextMoves
 
-    filename = os.path.join(OUT_DIRECTORY, "train_data.%d" % 1)
-    #print "NPZ.RandomizingWriter: writing", filename
+    # Split up into test & train sets: (10% testing, 90% training)
+    filename = os.path.join(OUT_DIRECTORY, "%s_data.%d" % (dataType, i))
     np.savez_compressed(filename, **save_dict)
+    print("saving train set %d..." % i)
     print("done.\n")
-    return save_dict
+    return
 
-def test_loading(saved_dict):
+# load 1 train file to see if it matches the data before saving
+def test_loading():
     print("Try to read data, to check if it was saved properly,")
-    for root, dirnames, filenames in os.walk(OUT_DIRECTORY):
-            for filename in fnmatch.filter(filenames, '*.npz'):
-                npz = np.load("%s/%s" % (OUT_DIRECTORY,filename))
-                print("loaded file: %s/%s" % (OUT_DIRECTORY,filename))
-                data = {'features':npz['features'].copy(), 'next_moves':npz['next_moves'].copy()}
-                npz.close()
+    filename = os.path.join(OUT_DIRECTORY, "train_data.0.npz")
+    npz = np.load(filename)
+    print("loaded file: %s/%s" % (OUT_DIRECTORY,filename))
+    data = {'features':npz['features'].copy(), 'next_moves':npz['next_moves'].copy()}
+    npz.close()
 
 
     print("are they the same...")
-    np.testing.assert_equal(saved_dict, data)
+    np.testing.assert_equal(TrainingTestData, data)
     print("YES\n")
 
 
@@ -48,17 +52,24 @@ if __name__ == '__main__':
     start_time = time.time()
 
     Parser = SGFParser(defs.HOW_MANY_GAMES_TO_USE)
-    moveData = Parser.get_move_data()
 
-    features, nextMoves = featureMaker.build_features(moveData)
-    del moveData # try to clear up some space
+    moveData = Parser.get_some_train_data(800)
+    i = 0
+    while moveData is not None:
+        features, nextMoves = featureMaker.build_features(moveData)
+        save_data_to_disk(features, nextMoves, "train", i)
+        moveData = Parser.get_some_train_data(800)
+        i+=1
 
-    data = save_data_to_disk(features, nextMoves)
-    del features
-    del nextMoves
+    moveData = Parser.get_some_test_data(800)
+    i = 0
+    while moveData is not None:
+        features, nextMoves = featureMaker.build_features(moveData)
+        save_data_to_disk(features, nextMoves, "test", i)
+        moveData = Parser.get_some_test_data(800)
+        i+=1
 
-    # try loading and check the contents are the same as before saving them..
-    test_loading(data)
+    test_loading()
                 
 
     print("Finished in %f secs." % (time.time() - start_time))
