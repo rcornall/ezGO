@@ -5,7 +5,7 @@ Get all the sgf games, parse them move by move into big list,
 from this we build 'features' for each move
 store this data with 80% for training, and 10% for validation 10% for testing
 '''
-import sys, os, fnmatch
+import os, fnmatch
 import time
 import numpy as np
 
