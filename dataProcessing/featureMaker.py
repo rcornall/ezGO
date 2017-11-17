@@ -8,11 +8,18 @@ build feature arrays for different important inputs to use for training
 
 
 '''
+import sys, os
 import numpy as np
+
+DIRECTORY = os.path.dirname(os.path.realpath(__file__))
+sys.path.insert(0, os.path.join(DIRECTORY, '..'))
 
 from defines import Defines as defs
 
+
+
 PLANES=3
+
 
 def build_features(moveData):
     print("Building features...")

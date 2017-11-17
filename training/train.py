@@ -4,16 +4,21 @@ train.py - runnable
 Train the neural net
 '''
 
-import os, fnmatch
+import os, sys, fnmatch
 import time
 
 import numpy as np
 import tensorflow as tf
 
 DIRECTORY = os.path.dirname(os.path.realpath(__file__))
-DATA_DIRECTORY = os.path.join(DIRECTORY, '..', 'trainingData', 'processedData')
+sys.path.insert(0, os.path.join(DIRECTORY, '..'))
+
+from network.network import Network
+from defines import Defines as defs
 
 BATCH_SIZE=256
+DATA_DIRECTORY = os.path.join(DIRECTORY, '..', 'trainingData', 'processedData')
+
 
 
 def read_data(file):
@@ -41,19 +46,25 @@ if __name__ == '__main__':
 
     inputDataFilesList = get_files("train")
     print("Found %d training data files" % len(inputDataFilesList))
-    for file in inputDataFilesList:
-        features, nextMoves = read_data(file)
-        batch = get_batch(features, nextMoves, BATCH_SIZE)
-        while len(batch['features']) != 0:
-            # train 1 batch at a time:
 
+    with tf.Graph().as_default():
+        i=0
 
-            # get rid of the data used in previous batch
-            # and get the next batch
-            features = features[BATCH_SIZE:]
-            nextMoves = nextMoves[BATCH_SIZE:]
+        for file in inputDataFilesList:
+            features, nextMoves = read_data(file)
             batch = get_batch(features, nextMoves, BATCH_SIZE)
+            while len(batch['features']) != 0:
+                # train 1 batch at a time:
 
+
+                # get rid of the data used in previous batch
+                # and get the next batch
+                features = features[BATCH_SIZE:]
+                nextMoves = nextMoves[BATCH_SIZE:]
+                batch = get_batch(features, nextMoves, BATCH_SIZE)
+                i+=1
+
+    print("%d batches ran." % i)
 
     print("Finished in %f secs." % (time.time() - start_time))
     print("Done.")

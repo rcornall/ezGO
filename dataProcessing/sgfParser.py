@@ -7,11 +7,15 @@ import sys, os, fnmatch
 import sgf # parsing sgf files
 import string
 
+# Directory of this file
+DIRECTORY = os.path.dirname(os.path.realpath(__file__))
+sys.path.insert(0, os.path.join(DIRECTORY, '..'))
+
 from moveState import MoveState
 from defines import Defines as defs
 
-# Directory of this file
-DIRECTORY = os.path.dirname(os.path.realpath(__file__))
+
+
 
 class SGFParser:
     # initialize..

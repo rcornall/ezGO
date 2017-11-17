@@ -5,19 +5,25 @@ Get all the sgf games, parse them move by move into big list,
 from this we build 'features' for each move
 store this data with 80% for training, and 10% for validation 10% for testing
 '''
-import os, fnmatch
+import os, sys, fnmatch
 import time
 import numpy as np
+
+DIRECTORY = os.path.dirname(os.path.realpath(__file__))
+sys.path.insert(0, os.path.join(DIRECTORY, '..'))
 
 from sgfParser import SGFParser
 from defines import Defines as defs
 import featureMaker
 
-DIRECTORY = os.path.dirname(os.path.realpath(__file__))
+
 OUT_DIRECTORY = os.path.join(DIRECTORY, '..', 'trainingData', 'processedData')
 
 SAVE_SIZE = 2**14 # save size to save training/testing data in chunks
+
 TrainingTestData = {} # for testing purposes..
+
+
 
 # store the data as compressed numpy arrays
 def save_data_to_disk(features, nextMoves, dataType, i):

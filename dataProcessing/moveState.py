@@ -11,10 +11,15 @@ data:
   whos turn it is
   next move coordinates
 '''
+import sys, os
 import numpy as np
 
-import defines 
+# Directory of this file
+DIRECTORY = os.path.dirname(os.path.realpath(__file__))
+sys.path.insert(0, os.path.join(DIRECTORY, '..'))
+
 from defines import Defines as defs
+
 
 
 class MoveState:
