@@ -47,7 +47,7 @@ class Network:
         self.session = tf.Session()
         # x is inputs, y_ is answers
         self.x = tf.placeholder(tf.float32, [None, defs.BOARD_SIZE, defs.BOARD_SIZE, NUMBER_OF_FEATURES])
-        self.y_ = tf.placeholder(tf.float32, [None, defs.BOARD_SIZE**2])
+        self.y_ = tf.placeholder(tf.float32, [None, defs.BOARD_SIZE, defs.BOARD_SIZE])
 
         layer1 = tf.nn.relu(conv_layer(self.x, [5, 5, NUMBER_OF_FEATURES, FILTERS], 'conv_1'))
         layer2 = tf.nn.relu(conv_layer(layer1, [3, 3, FILTERS, FILTERS], 'conv_2'))
@@ -70,7 +70,7 @@ class Network:
         # Loss function is cross entropy btwn target and softmax activation function
         # https://www.tensorflow.org/get_started/mnist/pros
         self.cross_entropy = tf.reduce_mean(
-            tf.nn.sparse_softmax_cross_entropy_with_logits(logits=self.logits, labels=self.y_))
+            tf.nn.softmax_cross_entropy_with_logits(logits=self.logits, labels=self.y_))
 
         # Decaying the learning rate as training progresses
         # https://www.tensorflow.org/versions/r0.12/api_docs/python/train/decaying_the_learning_rate
@@ -87,7 +87,7 @@ class Network:
         # Evaluation functions for our model to see how it does
         # https://www.tensorflow.org/versions/master/get_started/mnist/beginners
         self.is_equal = tf.equal(tf.argmax(self.logits, 1), tf.argmax(self.y_, 1))
-        self.accuracy = tf.reduce_mean(tf.cast(is_equal, tf.float32))
+        self.accuracy = tf.reduce_mean(tf.cast(self.is_equal, tf.float32))
 
         self.saver = tf.train.Saver()
 
