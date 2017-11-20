@@ -28,13 +28,14 @@ def build_features(moveData):
     nextMoves = np.zeros([len(moveData), defs.BOARD_SIZE, defs.BOARD_SIZE], dtype=np.uint8)
 
     for i, move in enumerate(moveData):
-        colorFeatures = makeColorFeatures(move)
+        colorFeatures = make_color_features(move)
         features[i] = colorFeatures
+        # features[?] = make_ones()
         nextMoves[i, move.nextMove[0], move.nextMove[1]] = 1    
 
     return features, nextMoves
 
-def makeColorFeatures(moveData):
+def make_color_features(moveData):
     # features is an array composed of 3 board sized arrays 
     # (player stones, opponent stones, empty spots)
     features = np.zeros([defs.BOARD_SIZE, defs.BOARD_SIZE, PLANES], dtype=np.uint8)
@@ -54,3 +55,10 @@ def makeColorFeatures(moveData):
     # print(features[:,:,2])
 
     return features
+
+# A layer of all 1s is useful for zero-padding convolution,
+# to detect where the board edge is
+# Idea was from TheDuck314's implementation
+# https://github.com/TheDuck314/go-NN
+def make_ones():
+    return np.ones((board.N, board.N), dtype=np.int8))

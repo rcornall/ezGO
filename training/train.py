@@ -44,25 +44,27 @@ def get_batch(features, nextMoves, batch_size=BATCH_SIZE):
 if __name__ == '__main__':
     start_time = time.time()
 
+
     inputDataFilesList = get_files("train")
     print("Found %d training data files" % len(inputDataFilesList))
 
-    with tf.Graph().as_default():
-        i=0
-
-        for file in inputDataFilesList:
-            features, nextMoves = read_data(file)
-            batch = get_batch(features, nextMoves, BATCH_SIZE)
-            while len(batch['features']) != 0:
-                # train 1 batch at a time:
-
-
-                # get rid of the data used in previous batch
-                # and get the next batch
-                features = features[BATCH_SIZE:]
-                nextMoves = nextMoves[BATCH_SIZE:]
+    with tf.device('/cpu:0'):
+        with tf.Graph().as_default():
+            network = Network()
+            i=0
+            for file in inputDataFilesList:
+                features, nextMoves = read_data(file)
                 batch = get_batch(features, nextMoves, BATCH_SIZE)
-                i+=1
+                while len(batch['features']) != 0:
+                    # train 1 batch at a time:
+                    network.train(batch)
+
+                    # get rid of the data used in previous batch
+                    # and get the next batch
+                    features = features[BATCH_SIZE:]
+                    nextMoves = nextMoves[BATCH_SIZE:]
+                    batch = get_batch(features, nextMoves, BATCH_SIZE)
+                    i+=1
 
     print("%d batches ran." % i)
 

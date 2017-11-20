@@ -1,13 +1,14 @@
 '''
 network.py - neural network class
 
-Convolutional Neural Net with 11 layers
+Convolutional Neural Net with 10 layers
 
 Design loosely follows alpha go policy network 
 first a 5x5 Conv
-followed by 10 3x3 layers using ReLu
+followed by 9 3x3 layers using ReLu
 '''
 import os, sys
+import math
 
 import tensorflow as tf
 
@@ -16,74 +17,86 @@ sys.path.insert(0, os.path.join(DIRECTORY, '..'))
 
 from defines import Defines as defs
 
+NUMBER_OF_FEATURES = 3
+FILTERS = 128
 
+
+def conv_layer(x, shape, name):
+    dimenX = shape[0]
+    dimenY = shape[1]
+    noInputsFeatures = shape[2]
+    noOutputFeatures = shape[3]
+
+    # weight initialization with a zero mean gaussian dist. 
+    # with a standard deviation of root(2/ni) , where ni is the 'flattened' size of input vectors
+    # this initialization helps deep CNNs (>8 layers) to converge
+    # Ref: https://arxiv.org/pdf/1502.01852.pdf
+    #  eg for 5x5 conv: root(2/  5    x    5   x input size)
+    numberOfInputs = dimenX*dimenY*noInputsFeatures
+    stddev = math.sqrt(2/numberOfInputs)
+
+    weights = tf.Variable(tf.truncated_normal(shape, stddev=stddev), name=name+'_weights')
+
+    # bias starts at 0, and need 1 for every output feature
+    bias = tf.Variable(tf.constant(0.0, shape=[defs.BOARD_SIZE, defs.BOARD_SIZE, noOutputFeatures],
+        name=name+'_biases'))
+    return tf.nn.conv2d(x, weights, strides=[1,1,1,1], padding='SAME') + bias
 
 class Network:
-    def __init__(self, k=128, num_conv_layers = 11):
-        # Setup the network weights and layers here
-        self.num_conv_layers = num_conv_layers
-        self.k = k
-        return
+    def __init__(self):
+        self.session = tf.Session()
+        # x is inputs, y_ is answers
+        self.x = tf.placeholder(tf.float32, [None, defs.BOARD_SIZE, defs.BOARD_SIZE, NUMBER_OF_FEATURES])
+        self.y_ = tf.placeholder(tf.float32, [None, defs.BOARD_SIZE**2])
+
+        layer1 = tf.nn.relu(conv_layer(self.x, [5, 5, NUMBER_OF_FEATURES, FILTERS], 'conv_1'))
+        layer2 = tf.nn.relu(conv_layer(layer1, [3, 3, FILTERS, FILTERS], 'conv_2'))
+        layer3 = tf.nn.relu(conv_layer(layer2, [3, 3, FILTERS, FILTERS], 'conv_3'))
+        layer4 = tf.nn.relu(conv_layer(layer3, [3, 3, FILTERS, FILTERS], 'conv_4'))
+        layer5 = tf.nn.relu(conv_layer(layer4, [3, 3, FILTERS, FILTERS], 'conv_5'))
+        layer6 = tf.nn.relu(conv_layer(layer5, [3, 3, FILTERS, FILTERS], 'conv_6'))
+        layer7 = tf.nn.relu(conv_layer(layer6, [3, 3, FILTERS, FILTERS], 'conv_7'))
+        layer8 = tf.nn.relu(conv_layer(layer7, [3, 3, FILTERS, FILTERS], 'conv_8'))
+        layer9 = tf.nn.relu(conv_layer(layer8, [3, 3, FILTERS, FILTERS], 'conv_9'))
+        # final layer goes from FILTERS inputs to 1 output (AKA 1 go board)
+        layer10 = conv_layer(layer9, [3, 3, FILTERS, 1], 'conv_10_final')
+        # final output is flattened to a 1D vector of size 19x19 
+        # 1 output logit for every board position
+        self.logits = tf.reshape(layer10, [-1, defs.BOARD_SIZE*defs.BOARD_SIZE])
+
+        # softmax converts logits to the normal probability range [0,1]
+        self.board_output = tf.nn.softmax(self.logits)
+ 
+        # Loss function is cross entropy btwn target and softmax activation function
+        # https://www.tensorflow.org/get_started/mnist/pros
+        self.cross_entropy = tf.reduce_mean(
+            tf.nn.sparse_softmax_cross_entropy_with_logits(logits=self.logits, labels=self.y_))
+
+        # Decaying the learning rate as training progresses
+        # https://www.tensorflow.org/versions/r0.12/api_docs/python/train/decaying_the_learning_rate
+        self.global_step = tf.Variable(0, trainable=False)
+        starter_learning_rate = 0.01
+        decayed_learning_rate = tf.train.exponential_decay(starter_learning_rate, self.global_step,
+                1000000, 0.96, staircase=True)
+
+
+        # Using gradient descent to 'descend' the cross entropy, or minimize loss
+        # passing in global_step to compute the decayed learning rate
+        self.train_step = tf.train.GradientDescentOptimizer(decayed_learning_rate).minimize(self.cross_entropy, global_step=self.global_step)
+
+        # Evaluation functions for our model to see how it does
+        # https://www.tensorflow.org/versions/master/get_started/mnist/beginners
+        self.is_equal = tf.equal(tf.argmax(self.logits, 1), tf.argmax(self.y_, 1))
+        self.accuracy = tf.reduce_mean(tf.cast(is_equal, tf.float32))
+
+        self.saver = tf.train.Saver()
+
+        self.session.run(tf.global_variables_initializer())
         
-
-
-    '''
-
-    go.N and num_input_plane are not defined
-   
-    '''
-    def network_set_up(self):
-        global_step = tf.Variable(0, name="global_step", trainable=False)
-        RL_global_step = tf.Variable(0, name="RL_global_step", trainable=False)
-        x = tf.placeholder(tf.float32, [None, go.N, go.N, self.num_input_planes])
-        y = tf.placeholder(tf.float32, shape=[None, go.N ** 2])
-
-        #custom functions for initializing weights and biases
-        def _weight_variable(shape, name):
-            # If shape is [5, 5, 20, 32], then each of the 32 output planes
-            # has 5 * 5 * 20 inputs.
-            number_inputs_added = utils.product(shape[:-1])
-            stddev = 1 / math.sqrt(number_inputs_added)
-            # http://neuralnetworksanddeeplearning.com/chap3.html#weight_initialization
-            return tf.Variable(tf.truncated_normal(shape, stddev=stddev), name=name)
-
-        def _conv2d(x, W):
-            return tf.nn.conv2d(x, W, strides=[1,1,1,1], padding="SAME")
-
-        #first layer 5x5
-        W_conv_init55 = _weight_variable([5, 5, self.num_input_planes, self.k], name="W_conv_init55")
-        W_conv_init11 = _weight_variable([1, 1, self.num_input_planes, self.k], name="W_conv_init11")
-        h_conv_init = tf.nn.relu(_conv2d(x, W_conv_init55) + _conv2d(x, W_conv_init11), name="h_conv_init")
-
-        # followed by a series of resnet 3x3 conv layers
-        W_conv_intermediate = []
-        h_conv_intermediate = []
-        _current_h_conv = h_conv_init
-        for i in range(self.num_int_conv_layers):
-            with tf.name_scope("layer"+str(i)):
-                _resnet_weights1 = _weight_variable([3, 3, self.k, self.k], name="W_conv_resnet1")
-                _resnet_weights2 = _weight_variable([3, 3, self.k, self.k], name="W_conv_resnet2")
-                _int_conv = tf.nn.relu(_conv2d(_current_h_conv, _resnet_weights1), name="h_conv_intermediate")
-                _output_conv = tf.nn.relu(
-                    _current_h_conv +
-                    _conv2d(_int_conv, _resnet_weights2),
-                    name="h_conv")
-                W_conv_intermediate.extend([_resnet_weights1, _resnet_weights2])
-                h_conv_intermediate.append(_output_conv)
-                _current_h_conv = _output_conv
-        
-        #final layer
-        W_conv_final = _weight_variable([1, 1, self.k, 1], name="W_conv_final")
-        b_conv_final = tf.Variable(tf.constant(0, shape=[go.N ** 2], dtype=tf.float32), name="b_conv_final")
-        h_conv_final = _conv2d(h_conv_intermediate[-1], W_conv_final)
-
-        #output
-        output = tf.nn.softmax(tf.reshape(h_conv_final, [-1, go.N ** 2]) + b_conv_final)
-        logits = tf.reshape(h_conv_final, [-1, go.N ** 2]) + b_conv_final
-
-        log_likelihood_cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits, labels=y))
-
-
     def train(self, batch):
         # train a batch
+        self.session.run([self.logits, self.cross_entropy, self.train_step, self.accuracy], 
+                feed_dict={self.x: batch['features'], self.y_: batch['next_moves']})
+
         return
+
