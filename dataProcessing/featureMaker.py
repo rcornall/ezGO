@@ -25,13 +25,13 @@ def build_features(moveData):
     print("Building features...")
 
     features = np.zeros([len(moveData), defs.BOARD_SIZE, defs.BOARD_SIZE, PLANES], dtype=np.uint8)
-    nextMoves = np.zeros([len(moveData), defs.BOARD_SIZE, defs.BOARD_SIZE], dtype=np.uint8)
+    nextMoves = np.zeros([len(moveData), defs.BOARD_SIZE**2], dtype=np.uint8)
 
     for i, move in enumerate(moveData):
         colorFeatures = make_color_features(move)
         features[i] = colorFeatures
         # features[?] = make_ones()
-        nextMoves[i, move.nextMove[0], move.nextMove[1]] = 1    
+        nextMoves[i, defs.BOARD_SIZE * move.nextMove[0] + move.nextMove[1]] = 1    
 
     return features, nextMoves
 
@@ -61,4 +61,4 @@ def make_color_features(moveData):
 # Idea was from TheDuck314's implementation
 # https://github.com/TheDuck314/go-NN
 def make_ones():
-    return np.ones((board.N, board.N), dtype=np.int8))
+    return np.ones((board.N, board.N), dtype=np.int8)
