@@ -37,8 +37,8 @@ def get_files(dataType="train"):
 
 def get_batch(features, nextMoves, batch_size=BATCH_SIZE):
     batch = {}
-    batch['features'] = features[batch_size:]
-    batch['next_moves'] = nextMoves[batch_size:]
+    batch['features'] = features[:batch_size]
+    batch['next_moves'] = nextMoves[:batch_size]
     return batch
 
 if __name__ == '__main__':
