@@ -9,6 +9,7 @@ followed by 9 3x3 layers using ReLu
 '''
 import os, sys
 import math
+import numpy as np
 
 import tensorflow as tf
 
@@ -34,6 +35,7 @@ def conv_layer(x, shape, name):
     #  eg for 5x5 conv: root(2/  5    x    5   x input size)
     numberOfInputs = dimenX*dimenY*noInputsFeatures
     stddev = math.sqrt(2/numberOfInputs)
+    # print(stddev)
 
     weights = tf.Variable(tf.truncated_normal(shape, stddev=stddev), name=name+'_weights')
 
@@ -46,8 +48,8 @@ class Network:
     def __init__(self):
         self.session = tf.Session()
         # x is inputs, y_ is answers
-        self.x = tf.placeholder(tf.float32, [None, defs.BOARD_SIZE, defs.BOARD_SIZE, NUMBER_OF_FEATURES])
-        self.y_ = tf.placeholder(tf.float32, [None, defs.BOARD_SIZE, defs.BOARD_SIZE])
+        self.x = tf.placeholder(tf.float32, shape=[None, defs.BOARD_SIZE, defs.BOARD_SIZE, NUMBER_OF_FEATURES])
+        self.y_ = tf.placeholder(tf.float64, shape=[None, defs.BOARD_SIZE**2])
 
         layer1 = tf.nn.relu(conv_layer(self.x, [5, 5, NUMBER_OF_FEATURES, FILTERS], 'conv_1'))
         layer2 = tf.nn.relu(conv_layer(layer1, [3, 3, FILTERS, FILTERS], 'conv_2'))
@@ -59,7 +61,7 @@ class Network:
         layer8 = tf.nn.relu(conv_layer(layer7, [3, 3, FILTERS, FILTERS], 'conv_8'))
         layer9 = tf.nn.relu(conv_layer(layer8, [3, 3, FILTERS, FILTERS], 'conv_9'))
         # final layer goes from FILTERS inputs to 1 output (AKA 1 go board)
-        layer10 = conv_layer(layer9, [3, 3, FILTERS, 1], 'conv_10_final')
+        layer10 = conv_layer(layer9, [1, 1, FILTERS, 1], 'conv_10_final')
         # final output is flattened to a 1D vector of size 19x19 
         # 1 output logit for every board position
         self.logits = tf.reshape(layer10, [-1, defs.BOARD_SIZE*defs.BOARD_SIZE])
@@ -95,8 +97,14 @@ class Network:
         
     def train(self, batch):
         # train a batch
-        self.session.run([self.logits, self.cross_entropy, self.train_step, self.accuracy], 
-                feed_dict={self.x: batch['features'], self.y_: batch['next_moves']})
+        print("training a batch...")
+        # flatten 2d moves into 1d array
+        # moves_arrays = batch['next_moves'].astype(np.int32)
+        # print(len(moves_arrays[:,0]))
+        # move_1d_coordinates =  defs.BOARD_SIZE * moves_arrays[:,0] + moves_arrays[:,1]
+        # print(move_1d_coordinates[0])
+        self.session.run([self.cross_entropy, self.train_step, self.accuracy], 
+                feed_dict={self.x: batch['features'].astype(np.float32), self.y_: batch['next_moves'].astype(np.float)})
 
         return
 

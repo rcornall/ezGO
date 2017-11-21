@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.join(DIRECTORY, '..'))
 from network.network import Network
 from defines import Defines as defs
 
-BATCH_SIZE=256
+BATCH_SIZE=32
 DATA_DIRECTORY = os.path.join(DIRECTORY, '..', 'trainingData', 'processedData')
 
 
