@@ -16,10 +16,9 @@ sys.path.insert(0, os.path.join(DIRECTORY, '..'))
 from network.network import Network
 from defines import Defines as defs
 
-BATCH_SIZE=32
+BATCH_SIZE=256
 DATA_DIRECTORY = os.path.join(DIRECTORY, '..', 'trainingData', 'processedData')
-
-
+CHECKPOINT_DIR = os.path.join(DIRECTORY, '..', 'checkpoints')
 
 def read_data(file):
     numpyFile = np.load(file)
@@ -59,6 +58,13 @@ if __name__ == '__main__':
                     # train 1 batch at a time:
                     network.train(batch)
 
+
+                    if i%5 == 0:
+                        ''# network.print_summary()
+
+                    if i%500==0 and i!=0:
+                        network.save_checkpoint(CHECKPOINT_DIR, i)
+                    
                     # get rid of the data used in previous batch
                     # and get the next batch
                     features = features[BATCH_SIZE:]

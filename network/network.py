@@ -98,13 +98,16 @@ class Network:
     def train(self, batch):
         # train a batch
         print("training a batch...")
-        # flatten 2d moves into 1d array
-        # moves_arrays = batch['next_moves'].astype(np.int32)
-        # print(len(moves_arrays[:,0]))
-        # move_1d_coordinates =  defs.BOARD_SIZE * moves_arrays[:,0] + moves_arrays[:,1]
-        # print(move_1d_coordinates[0])
-        self.session.run([self.cross_entropy, self.train_step, self.accuracy], 
+        _, loss, accuracy = self.session.run([self.train_step, self.cross_entropy, self.accuracy], 
                 feed_dict={self.x: batch['features'].astype(np.float32), self.y_: batch['next_moves'].astype(np.float)})
 
         return
 
+    
+    def test(self, batch):
+        loss, accuracy = self.session.run([self.cross_entropy, self.accuracy], 
+                feed_dict={self.x: batch['features'].astype(np.float32), self.y_: batch['next_moves'].astype(np.float)})
+
+    def save_checkpoint(self, checkpoint_directory, step):
+        print("saving checkpoint %d .." % step)
+        self.saver.save(self.session, "%s/checkpoint_%d" % (checkpoint_directory, step))
