@@ -47,6 +47,7 @@ def conv_layer(x, shape, name):
 class Network:
     def __init__(self):
         self.session = tf.Session()
+        self.training_stats = Collect_stats()
         # x is inputs, y_ is answers
         self.x = tf.placeholder(tf.float32, shape=[None, defs.BOARD_SIZE, defs.BOARD_SIZE, NUMBER_OF_FEATURES])
         self.y_ = tf.placeholder(tf.float64, shape=[None, defs.BOARD_SIZE**2])
@@ -94,6 +95,9 @@ class Network:
         self.saver = tf.train.Saver()
 
         self.session.run(tf.global_variables_initializer())
+
+    def get_global_step(self):
+        return self.session.run(self.global_step)
         
     def train(self, batch):
         # train a batch
@@ -101,7 +105,15 @@ class Network:
         _, loss, accuracy = self.session.run([self.train_step, self.cross_entropy, self.accuracy], 
                 feed_dict={self.x: batch['features'].astype(np.float32), self.y_: batch['next_moves'].astype(np.float)})
 
+        #calculate accuracy
+        self.training_stats.report(accuracy, loss)
+
         return
+
+    def average_summary(self):
+        avg_accuracy, avg_cost, accuracy_summaries = self.training_stats.collect()
+        global_step = self.get_global_step()
+        print("Step %d training data accuracy: %g; cost: %g" % (global_step, avg_accuracy, avg_cost))
 
     
     def test(self, batch):
@@ -111,3 +123,31 @@ class Network:
     def save_checkpoint(self, checkpoint_directory, step):
         print("saving checkpoint %d .." % step)
         self.saver.save(self.session, "%s/checkpoint_%d" % (checkpoint_directory, step))
+
+class Collect_stats(object):
+    graph = tf.Graph()
+    with tf.device("/cpu:0"), graph.as_default():
+        accuracy = tf.placeholder(tf.float32, [])
+        cost = tf.placeholder(tf.float32, [])
+        accuracy_summary = tf.summary.scalar("accuracy", accuracy)
+        cost_summary = tf.summary.scalar("cross_entropy", cost)
+        accuracy_summaries = tf.summary.merge([accuracy_summary, cost_summary], name="accuracy_summaries")
+    session = tf.Session(graph=graph)
+    
+    def __init__(self):
+        self.accuracies = []
+        self.costs = []
+
+    def report(self, accuracy, cost):
+        self.accuracies.append(accuracy)
+        self.costs.append(cost)
+
+    def collect(self):
+        print(self.accuracies)
+        avg_acc = sum(self.accuracies) / len(self.accuracies)
+        avg_cost = sum(self.costs) / len(self.costs)
+        self.accuracies = []
+        self.costs = []
+        summary = self.session.run(self.accuracy_summaries,
+            feed_dict={self.accuracy:avg_acc, self.cost: avg_cost})
+        return avg_acc, avg_cost, summary

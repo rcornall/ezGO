@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.join(DIRECTORY, '..'))
 from network.network import Network
 from defines import Defines as defs
 
-BATCH_SIZE=256
+BATCH_SIZE=64
 DATA_DIRECTORY = os.path.join(DIRECTORY, '..', 'trainingData', 'processedData')
 CHECKPOINT_DIR = os.path.join(DIRECTORY, '..', 'checkpoints')
 
@@ -53,6 +53,7 @@ if __name__ == '__main__':
             i=0
             for file in inputDataFilesList:
                 features, nextMoves = read_data(file)
+                print("Total feature size is %d, Total next move size is %d" %(len(features), len(nextMoves)))
                 batch = get_batch(features, nextMoves, BATCH_SIZE)
                 while len(batch['features']) != 0:
                     # train 1 batch at a time:
@@ -72,6 +73,10 @@ if __name__ == '__main__':
                     batch = get_batch(features, nextMoves, BATCH_SIZE)
                     i+=1
 
+                    print("%d batches ran. Remaining Feature Length is %d" % (i, len(features)))
+
+                network.average_summary()    
+    
     print("%d batches ran." % i)
 
     print("Finished in %f secs." % (time.time() - start_time))
