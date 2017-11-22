@@ -101,7 +101,6 @@ class Network:
         
     def train(self, batch):
         # train a batch
-        print("training a batch...")
         _, loss, accuracy = self.session.run([self.train_step, self.cross_entropy, self.accuracy], 
                 feed_dict={self.x: batch['features'].astype(np.float32), self.y_: batch['next_moves'].astype(np.float)})
 
@@ -121,7 +120,9 @@ class Network:
                 feed_dict={self.x: batch['features'].astype(np.float32), self.y_: batch['next_moves'].astype(np.float)})
 
     def save_checkpoint(self, checkpoint_directory, step):
+        print("-----------------------------------------------------------")
         print("saving checkpoint %d .." % step)
+        print("-----------------------------------------------------------")
         self.saver.save(self.session, "%s/checkpoint_%d" % (checkpoint_directory, step))
 
     def load_checkpoint(self, checkpoint_directory):

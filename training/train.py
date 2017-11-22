@@ -50,13 +50,18 @@ if __name__ == '__main__':
     with tf.device('/cpu:0'):
         with tf.Graph().as_default():
             network = Network()
-            checkpointFile = input("Specify Checkpoint file name (eg checkpoint_500):\n> ")
-            checkpointDir = os.path.join(CHECKPOINT_DIR, checkpointFile)
+            checkpointFile = input("Specify Checkpoint step number (eg 500):\n> ")
+            checkpointDir = os.path.join(CHECKPOINT_DIR, "checkpoint_%s" % checkpointFile)
             network.load_checkpoint(checkpointDir)
             i=0
             for file in inputDataFilesList:
                 features, nextMoves = read_data(file)
+                print("==========================================================")
+                print("loaded training file %s" % file)
+                print("****dont train with this file ever again****")
                 print("Total feature size is %d, Total next move size is %d" %(len(features), len(nextMoves)))
+                print("==========================================================")
+
                 batch = get_batch(features, nextMoves, BATCH_SIZE)
                 while len(batch['features']) != 0:
                     # train 1 batch at a time:
