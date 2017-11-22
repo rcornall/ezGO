@@ -127,7 +127,22 @@ class Network:
     def load_checkpoint(self, checkpoint_directory):
         self.saver.restore(self.session, checkpoint_directory)
         print("Loaded checkpoint: %s" % checkpoint_directory)
-        print("Continuing training..")
+
+    def generate_move(self, features):
+        print("Generating moves...")
+        logits = self.session.run(self.logits, feed_dict={self.x: features})
+
+        # some reason logits is list of 1 array
+        print(logits.argmax())
+        coordinate = logits.argmax()
+
+        x = int(coordinate/(defs.BOARD_SIZE))
+        y = int(coordinate%(defs.BOARD_SIZE))
+
+        print("coords pair")
+        print(x,y)
+        return x,y
+
 
 class Collect_stats(object):
     graph = tf.Graph()

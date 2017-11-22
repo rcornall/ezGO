@@ -50,7 +50,7 @@ if __name__ == '__main__':
     with tf.device('/cpu:0'):
         with tf.Graph().as_default():
             network = Network()
-            checkpointFile = input("SPECIFY CHECKPOINT FILE NAME (eg checkpoint_500):\n> ")
+            checkpointFile = input("Specify Checkpoint file name (eg checkpoint_500):\n> ")
             checkpointDir = os.path.join(CHECKPOINT_DIR, checkpointFile)
             network.load_checkpoint(checkpointDir)
             i=0
@@ -64,10 +64,10 @@ if __name__ == '__main__':
 
 
                     if i%5 == 0:
-                        ''# network.print_summary()
+                        network.average_summary()
 
                     if i%100==0 and i!=0:
-                        network.save_checkpoint(CHECKPOINT_DIR, i)
+                        network.save_checkpoint(CHECKPOINT_DIR, network.get_global_step())
                     
                     # get rid of the data used in previous batch
                     # and get the next batch
@@ -76,7 +76,7 @@ if __name__ == '__main__':
                     batch = get_batch(features, nextMoves, BATCH_SIZE)
                     i+=1
 
-                    print("%d batches ran. Remaining Feature Length is %d" % (i, len(features)))
+                    print("%d batches ran. Remaining Feature Length is %d" % (network.get_global_step(), len(features)))
 
                 network.average_summary()    
     

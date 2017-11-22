@@ -35,6 +35,15 @@ def build_features(moveData):
 
     return features, nextMoves
 
+def build_one_move_features(moveState):
+    print("building features for the move...")
+
+    features = np.zeros([1,defs.BOARD_SIZE, defs.BOARD_SIZE, PLANES], dtype=np.uint8)
+    features[0] = make_color_features(moveState)
+
+    return features
+    
+
 def make_color_features(moveData):
     # features is an array composed of 3 board sized arrays 
     # (player stones, opponent stones, empty spots)
