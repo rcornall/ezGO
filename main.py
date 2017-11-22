@@ -18,24 +18,34 @@ CHECKPOINT_DIR = os.path.join(DIRECTORY, 'checkpoints')
 if __name__ == '__main__':
     network = Network()
     
-    checkpointFile = input("Specify Checkpoint file name (eg checkpoint_500):\n> ")
-    checkpointDir = os.path.join(CHECKPOINT_DIR, checkpointFile)
+    checkpointFile = input("Specify Checkpoint file step (eg 500):\n> ")
+    checkpointDir = os.path.join(CHECKPOINT_DIR, "checkpoint_%s" % checkpointFile)
     network.load_checkpoint(checkpointDir)
 
     moveState = MoveState()
+    moveState.play_stone((defs.COLOR.BLACK, (3,3)))
 
 
     while True:
         # default player is black, and network is white
         # get a move
-        move = tuple(int(x.strip()) for x in input("Input player move ( eg: 3,3 ):\n> ").split(','))
+        
+        #move = tuple(int(x.strip()) for x in input("Input player move ( eg: 3,3 ):\n> ").split(','))
+        #stone = (defs.COLOR.BLACK, move) 
+        #moveState.play_stone(stone)
 
-        stone = (defs.COLOR.BLACK, move) 
+        features = build_one_move_features(moveState)
+        responseMove = network.generate_move(features)
 
-        moveState.play_stone(stone)
+        responseMove = network.generate_move(features)
+
+        responseStone = (defs.COLOR.BLACK, responseMove)
+
+        moveState.play_stone(responseStone)
 
         print("Board state:")
         print(moveState.board)
+        input("show next move...")
 
         features = build_one_move_features(moveState)
  
@@ -47,7 +57,7 @@ if __name__ == '__main__':
 
         print("Board state:")
         print(moveState.board)
-        print("ezGO generated a move: ")
+        input("show next move...")
         #print(response)
 
 
