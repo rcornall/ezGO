@@ -111,3 +111,9 @@ class Network:
     def save_checkpoint(self, checkpoint_directory, step):
         print("saving checkpoint %d .." % step)
         self.saver.save(self.session, "%s/checkpoint_%d" % (checkpoint_directory, step))
+
+    def load_checkpoint(self, checkpoint_directory):
+        self.saver.restore(self.session, checkpoint_directory)
+        print("Loaded checkpoint: %s" % checkpoint_directory)
+        print("Continuing training..")
+

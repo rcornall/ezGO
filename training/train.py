@@ -50,6 +50,9 @@ if __name__ == '__main__':
     with tf.device('/cpu:0'):
         with tf.Graph().as_default():
             network = Network()
+            checkpointFile = input("SPECIFY CHECKPOINT FILE NAME (eg checkpoint_500):\n> ")
+            checkpointDir = os.path.join(CHECKPOINT_DIR, checkpointFile)
+            network.load_checkpoint(checkpointDir)
             i=0
             for file in inputDataFilesList:
                 features, nextMoves = read_data(file)
@@ -62,7 +65,7 @@ if __name__ == '__main__':
                     if i%5 == 0:
                         ''# network.print_summary()
 
-                    if i%500==0 and i!=0:
+                    if i%100==0 and i!=0:
                         network.save_checkpoint(CHECKPOINT_DIR, i)
                     
                     # get rid of the data used in previous batch
