@@ -8,13 +8,6 @@ from defines import COLOUR as colour
 #DIRECTORY = os.path.dirname(os.path.realpath(__file__))
 #sys.path.insert(0, os.path.join(DIRECTORY))
 
-class colour:
-    EMPTY = 0
-    BLACK = 1
-    WHITE = 2
-
-colour_names = { colour.EMPTY: "Empty", colour.BLACK: "Black", colour.WHITE: "White"}
-inverted_colour = { colour.EMPTY: colour.EMPTY, colour.BLACK: colour.WHITE, colour.WHITE: colour.BLACK}
 
 # Checking if there are any stones adjacent to most recently placed stone
 adj_vector_list = [(1,0), (-1,0), (0,1), (0,-1)]
@@ -87,8 +80,8 @@ class Board:
 					self.groups[adj_pair].liberties.add(pair)
 
 	# Check if okay..
-	def check_move(self, x_pos, y_pos, colour, make_move):
-		assert colour == colour.WHITE or colour == colour.BLACK
+	def check_move(self, x_pos, y_pos, color, make_move):
+		assert color == colour.WHITE or color == colour.BLACK
 		if not (0 <= x_pos < defs.BOARD_SIZE and 0 <= y_pos < defs.BOARD_SIZE): return False
 		# Check if a move is being played on top of another stone
 		pair = x_pos, y_pos
@@ -96,7 +89,7 @@ class Board:
 		# Checking if there is a KO move
 		if self.ko_move and pair == self.ko_move: return  False
 
-		group = Group(colour)
+		group = Group(color)
 		group.Moves.add(pair)
 
 		your_groups = set([])
@@ -109,7 +102,7 @@ class Board:
 			else:
 				# Adding groups to form a set of your groups and enemy groups
 				adj_group = self.groups[adj_pair]
-				if self.Moves[adj_pair] == colour:
+				if self.Moves[adj_pair] == color:
 					your_groups.add(adj_group)
 					if len(adj_group.liberties) >= 2: self_capture = False
 				else:
@@ -121,7 +114,7 @@ class Board:
 		if not make_move: return True
 
 		# Make move if legal
-		self.Moves[pair] = colour
+		self.Moves[pair] = color
 		self.groups[pair] = group
 		self.all_groups.add(group)
 
@@ -136,7 +129,7 @@ class Board:
 			if len(to_be_captured_group.liberties) == 1:
 				num_stone_captured += len(to_be_captured_group.Moves)
 				captured_stone = next(iter(to_be_captured_group.Moves))
-				self.removing_groups(to_be_captured_group, changing_colour=colour)
+				self.removing_groups(to_be_captured_group, changing_colour=color)
 			else:
 				to_be_captured_group.liberties.remove(pair)
 
@@ -146,7 +139,7 @@ class Board:
 			self.ko_move = None
 
 		self.possible_moves.append(pair)
-		self.FirstMove = inverted_colour[colour]
+		self.FirstMove = inverted_colour[color]
 		return True
 
 	def player_move(self, x_pos, y_pos, colour):
