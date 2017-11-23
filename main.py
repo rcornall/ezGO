@@ -7,6 +7,7 @@ the network give a respond move
 import os
 
 from defines import Defines as defs
+from defines import COLOUR as COLOUR
 from network.network import Network
 from dataProcessing.moveState import MoveState
 from dataProcessing.featureMaker import build_one_move_features
@@ -23,7 +24,7 @@ if __name__ == '__main__':
     network.load_checkpoint(checkpointDir)
 
     moveState = MoveState()
-    moveState.play_stone((defs.COLOR.BLACK, (3,3)))
+    moveState.play_stone((COLOUR.BLACK, (3,3)))
 
 
     while True:
@@ -39,7 +40,7 @@ if __name__ == '__main__':
 
         responseMove = network.generate_move(features)
 
-        responseStone = (defs.COLOR.BLACK, responseMove)
+        responseStone = (COLOUR.BLACK, responseMove)
 
         moveState.play_stone(responseStone)
 
@@ -51,7 +52,7 @@ if __name__ == '__main__':
  
         responseMove = network.generate_move(features)
 
-        responseStone = (defs.COLOR.WHITE, responseMove)
+        responseStone = (COLOUR.WHITE, responseMove)
 
         moveState.play_stone(responseStone)
 
