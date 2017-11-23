@@ -4,10 +4,17 @@ import os, sys
 from defines import Defines as defs
 from defines import COLOUR as colour
 
-'''
-DIRECTORY = os.path.dirname(os.path.realpath(__file__))
-sys.path.insert(0, os.path.join(DIRECTORY, '..'))
-'''
+# FIGURE OUT HOW TO LINK THE TWO FILES
+#DIRECTORY = os.path.dirname(os.path.realpath(__file__))
+#sys.path.insert(0, os.path.join(DIRECTORY))
+
+class colour:
+    EMPTY = 0
+    BLACK = 1
+    WHITE = 2
+
+colour_names = { colour.EMPTY: "Empty", colour.BLACK: "Black", colour.WHITE: "White"}
+inverted_colour = { colour.EMPTY: colour.EMPTY, colour.BLACK: colour.WHITE, colour.WHITE: colour.BLACK}
 
 # Checking if there are any stones adjacent to most recently placed stone
 adj_vector_list = [(1,0), (-1,0), (0,1), (0,-1)]
@@ -20,14 +27,14 @@ class Group:
 
 class Board:
 	def __init__(self, BOARD_SIZE):
-		defs.BOARD_SIZE = BOARD_SIZE
+		defs.BOARD_SIZE = defs.BOARD_SIZE
 		self.clear()
 
 	def clear(self):
 		# Clearing the board and defining Moves to be a tuple of integers
 		self.Moves = np.empty((defs.BOARD_SIZE, defs.BOARD_SIZE), dtype = np.int32)
 		# Filling the board with "empty" moves
-		self.Moves.fill(colour.Empty)
+		self.Moves.fill(colour.EMPTY)
 		# Mapping (x,y) tuples to the class Group
 		self.possible_moves = []
 		self.groups = {}
@@ -35,7 +42,7 @@ class Board:
 		self.all_groups = set([])
 		# A move where there is endless capture and recapture of stones
 		self.ko_move = None
-		self.FirstMove = colour.Black
+		self.FirstMove = colour.BLACK
 
 	def __getitem__ (self, position):
 		return self.Moves[position]
@@ -73,7 +80,7 @@ class Board:
 		for pair in group.Moves:
 			del self.groups[pair]
 			# Make the following space "empty"
-			self.Moves[pair] = colour.Empty
+			self.Moves[pair] = colour.EMPTY
 			# Checking the adjacent pairs around the current pair
 			for adj_pair in self.check_adj(pair):
 				if self.Moves[adj_pair] == changing_colour:
@@ -81,11 +88,11 @@ class Board:
 
 	# Check if okay..
 	def check_move(self, x_pos, y_pos, colour, make_move):
-		assert colour == colour.White or colour == colour.Black
+		assert colour == colour.WHITE or colour == colour.BLACK
 		if not (0 <= x_pos < defs.BOARD_SIZE and 0 <= y_pos < defs.BOARD_SIZE): return False
 		# Check if a move is being played on top of another stone
 		pair = x_pos, y_pos
-		if self.Moves[pair] != colour.Empty: return False
+		if self.Moves[pair] != colour.EMPTY: return False
 		# Checking if there is a KO move
 		if self.ko_move and pair == self.ko_move: return  False
 
@@ -96,7 +103,7 @@ class Board:
 		to_be_captured_groups = set([])
 		self_capture = True
 		for adj_pair in self.check_adj(pair):
-			if self.Moves[adj_pair] ==  colour.Empty:
+			if self.Moves[adj_pair] ==  colour.EMPTY:
 				group.liberties.add(adj_pair)
 				self_capture = False
 			else:
@@ -143,7 +150,7 @@ class Board:
 		return True
 
 	def player_move(self, x_pos, y_pos, colour):
-		if not self.check_move(x_pos, y_pos, make_move=True):
+		if not self.check_move(x_pos, y_pos, colour, make_move=True):
 			print("Illegal move.\n")
 
 	def player_move_legal(self, x_pos, y_pos, colour):
@@ -156,7 +163,7 @@ class Board:
 		self.FirstMove = inverted_colour[self.FirstMove]
 
 	def display(self):
-		colour_str = { Colour.EMPTY: 'E', COLOUR.BLACK: 'B', COLOUR.WHITE: 'W'}
+		colour_str = { colour.EMPTY: 'E', colour.BLACK: 'B', colour.WHITE: 'W'}
 		for x_pos in range(defs.BOARD_SIZE): print(" =")
 		print
 		for y_pos in range(defs.BOARD_SIZE):
@@ -177,8 +184,40 @@ def display_seq(board, moves, first_stone_colour):
 		board.display()
 		colour = inverted_colour[colour]
 
+def test_Board():
+    board = Board(5)
+    
+    print ("simplest capture:")
+    display_seq(board, [(1, 0), (0, 0), (0, 1)], colour.BLACK)
+    '''
+    print ("move at (0, 0) is legal?", board.player_move_legal(0, 0, colour.WHITE))
+    board.display()
+    
+    board.flip_colors()
 
+    print ("bigger capture:")
+    display_seq(board, [(0, 0), (1, 0), (0, 1), (1, 1), (0, 2), (1, 2), (0, 3), (1, 3), (0, 4), (1, 4)], colour.BLACK)
+
+    print ("ko:")
+    display_seq(board, [(0, 1), (3, 1), (1, 0), (2, 0), (1, 2), (2, 2), (2, 1), (1, 1)], colour.BLACK)
+    print ("move at (2, 1) is legal?", board.player_move_legal(2, 1, colour.BLACK))
+    board.display()
+    board.flip_colors()
+    print ("fipped board:")
+    board.display()
+
+    print ("self capture:")
+    display_seq(board, [(0, 1), (1, 1), (1, 0)], colour.BLACK)
+    print ("move at (0, 0) is legal?", board.player_move_legal(0, 0, colour.BLACK))
+
+    print ("biffer self capture:")
+    display_seq(board, [(1, 0), (0, 0), (1, 1), (0, 1), (1, 2), (0, 2), (1, 3), (0, 3), (1, 4)], colour.BLACK)
+    print ("move at (0, 4) is legal?", board.player_move_legal(0, 0, colour.WHITE))
+
+'''
+
+if __name__ == "__main__":
+    test_Board()
 	
-
 
 
