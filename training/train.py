@@ -52,7 +52,7 @@ if __name__ == '__main__':
             network = Network()
             checkpointFile = input("Specify Checkpoint step number (eg 500):\n> ")
             checkpointDir = os.path.join(CHECKPOINT_DIR, "checkpoint_%s" % checkpointFile)
-            network.load_checkpoint(checkpointDir)
+            #network.load_checkpoint(checkpointDir)
             i=0
             for file in inputDataFilesList:
                 features, nextMoves = read_data(file)

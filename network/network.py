@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.join(DIRECTORY, '..'))
 
 from defines import Defines as defs
 
-NUMBER_OF_FEATURES = 3
+NUMBER_OF_FEATURES = 4
 FILTERS = 128
 
 
@@ -78,7 +78,7 @@ class Network:
         # Decaying the learning rate as training progresses
         # https://www.tensorflow.org/versions/r0.12/api_docs/python/train/decaying_the_learning_rate
         self.global_step = tf.Variable(0, trainable=False)
-        starter_learning_rate = 0.01
+        starter_learning_rate = 0.001
         decayed_learning_rate = tf.train.exponential_decay(starter_learning_rate, self.global_step,
                 1000000, 0.96, staircase=True)
 
@@ -93,6 +93,7 @@ class Network:
         self.accuracy = tf.reduce_mean(tf.cast(self.is_equal, tf.float32))
 
         self.saver = tf.train.Saver()
+        self.saver(max_to_keep=500)
 
         self.session.run(tf.global_variables_initializer())
 
