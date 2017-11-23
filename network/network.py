@@ -92,8 +92,7 @@ class Network:
         self.is_equal = tf.equal(tf.argmax(self.logits, 1), tf.argmax(self.y_, 1))
         self.accuracy = tf.reduce_mean(tf.cast(self.is_equal, tf.float32))
 
-        self.saver = tf.train.Saver()
-        self.saver(max_to_keep=500)
+        self.saver = tf.train.Saver(max_to_keep=500)
 
         self.session.run(tf.global_variables_initializer())
 
@@ -130,16 +129,23 @@ class Network:
         self.saver.restore(self.session, checkpoint_directory)
         print("Loaded checkpoint: %s" % checkpoint_directory)
 
-    def generate_move(self, features):
+    def generate_move(self, features, moveState):
         print("Generating moves...")
         logits = self.session.run(self.logits, feed_dict={self.x: features})
 
-        # some reason logits is list of 1 array
-        print(logits.argmax())
-        coordinate = logits.argmax()
+        print("first choice move is: %d" % logits.argmax())
 
+        sorted_indexes = np.flip(logits.argsort(),1)
+        
+        i=0
+        coordinate = sorted_indexes[0][i]
         x = int(coordinate/(defs.BOARD_SIZE))
         y = int(coordinate%(defs.BOARD_SIZE))
+        while not moveState.check_if_valid(x,y):
+            i+=1
+            coordinate = sorted_indexes[0][i]
+            x = int(coordinate/(defs.BOARD_SIZE))
+            y = int(coordinate%(defs.BOARD_SIZE))
 
         print("coords pair")
         print(x,y)

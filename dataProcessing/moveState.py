@@ -54,3 +54,12 @@ class MoveState:
     def set_next_move(self, stone):
         self.turn = stone[0]
         self.nextMove = stone[1]
+
+    def check_if_valid(self, x,y):
+        coord = (x,y)
+        if self.board[coord] != 0:
+            return False
+        else:
+            return True
+
+

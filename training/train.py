@@ -52,7 +52,7 @@ if __name__ == '__main__':
             network = Network()
             checkpointFile = input("Specify Checkpoint step number (eg 500):\n> ")
             checkpointDir = os.path.join(CHECKPOINT_DIR, "checkpoint_%s" % checkpointFile)
-            #network.load_checkpoint(checkpointDir)
+            network.load_checkpoint(checkpointDir)
             i=0
             for file in inputDataFilesList:
                 features, nextMoves = read_data(file)
@@ -68,7 +68,7 @@ if __name__ == '__main__':
                     network.train(batch)
 
 
-                    if i%5 == 0:
+                    if i%50 == 0:
                         network.average_summary()
 
                     if i%100==0 and i!=0:
