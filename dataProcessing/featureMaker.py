@@ -15,7 +15,7 @@ DIRECTORY = os.path.dirname(os.path.realpath(__file__))
 sys.path.insert(0, os.path.join(DIRECTORY, '..'))
 
 from defines import Defines as defs
-
+from defines import COLOUR as COLOUR
 
 
 PLANES=3
@@ -48,13 +48,13 @@ def make_color_features(moveData):
     # features is an array composed of 3 board sized arrays 
     # (player stones, opponent stones, empty spots)
     features = np.zeros([defs.BOARD_SIZE, defs.BOARD_SIZE, PLANES], dtype=np.uint8)
-    if moveData.turn == defs.COLOR.BLACK:
-        features[moveData.board == defs.COLOR.BLACK, 0] = 1
-        features[moveData.board == defs.COLOR.WHITE, 1] = 1
+    if moveData.turn == COLOUR.BLACK:
+        features[moveData.board == COLOUR.BLACK, 0] = 1
+        features[moveData.board == COLOUR.WHITE, 1] = 1
     else:
-        features[moveData.board == defs.COLOR.WHITE, 0] = 1
-        features[moveData.board == defs.COLOR.BLACK, 1] = 1
-    features[moveData.board == defs.COLOR.EMPTY, 2] = 1
+        features[moveData.board == COLOUR.WHITE, 0] = 1
+        features[moveData.board == COLOUR.BLACK, 1] = 1
+    features[moveData.board == COLOUR.EMPTY, 2] = 1
     
     # print("\n\n0th Feature:")
     # print(features[:,:,0])
