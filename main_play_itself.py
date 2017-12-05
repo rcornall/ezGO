@@ -23,19 +23,31 @@ if __name__ == '__main__':
     network.load_checkpoint(checkpointDir)
 
     moveState = MoveState()
-    moveState.play_stone((defs.COLOR.BLACK, (4,15)))
+    moveState.play_stone((defs.COLOR.BLACK, (3,15)))
 
 
     while True:
         # default player is black, and network is white
         # get a move
         
-        move = tuple(int(x.strip()) for x in input("Input player move ( eg: 3,3 ):\n> ").split(','))
-        stone = (defs.COLOR.WHITE, move) 
-        moveState.play_stone(stone)
+        #move = tuple(int(x.strip()) for x in input("Input player move ( eg: 3,3 ):\n> ").split(','))
+        #stone = (defs.COLOR.WHITE, move) 
+        #moveState.play_stone(stone)
 
         features = build_one_move_features(moveState)
 
+        responseMove = network.generate_move(features, moveState)
+
+        responseStone = (defs.COLOR.WHITE, responseMove)
+
+        moveState.play_stone(responseStone)
+
+        print("Board state:")
+        print(moveState.board)
+        input("show next move...")
+
+        features = build_one_move_features(moveState)
+ 
         responseMove = network.generate_move(features, moveState)
 
         responseStone = (defs.COLOR.BLACK, responseMove)
@@ -45,18 +57,6 @@ if __name__ == '__main__':
         print("Board state:")
         print(moveState.board)
         input("show next move...")
-
-        #features = build_one_move_features(moveState)
- 
-        #responseMove = network.generate_move(features, moveState)
-
-        #responseStone = (defs.COLOR.WHITE, responseMove)
-
-        #moveState.play_stone(responseStone)
-
-        #print("Board state:")
-        #print(moveState.board)
-        #input("show next move...")
         ##print(response)
 
 

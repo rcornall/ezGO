@@ -92,7 +92,7 @@ class Network:
         self.is_equal = tf.equal(tf.argmax(self.logits, 1), tf.argmax(self.y_, 1))
         self.accuracy = tf.reduce_mean(tf.cast(self.is_equal, tf.float32))
 
-        self.saver = tf.train.Saver(max_to_keep=500)
+        self.saver = tf.train.Saver(max_to_keep=8)
 
         self.session.run(tf.global_variables_initializer())
 

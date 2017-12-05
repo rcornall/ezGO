@@ -48,6 +48,8 @@ class MoveState:
             return
         color = stone[0]
         coordinates = stone[1]
+        if self.board[coordinates] != defs.COLOR.EMPTY:
+            return False
         self.board[coordinates] = color
         return None
 
@@ -57,7 +59,7 @@ class MoveState:
 
     def check_if_valid(self, x,y):
         coord = (x,y)
-        if self.board[coord] != 0:
+        if self.board[coord] != defs.COLOR.EMPTY:
             return False
         else:
             return True

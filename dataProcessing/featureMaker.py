@@ -62,14 +62,14 @@ def make_features(moveData):
     # https://github.com/TheDuck314/go-NN
     features[:,:,3] = 1
 
-    #print("\n\n0th Feature:")
-    #print(features[:,:,0])
-    #print("\n\n1th Feature:")
-    #print(features[:,:,1])
-    #print("\n\n2th Feature:")
-    #print(features[:,:,2])
-    #print("\n\n3rd Feature:")
-    #print(features[:,:,3])
+    print("\n\n0th Feature:")
+    print(features[:,:,0])
+    print("\n\n1th Feature:")
+    print(features[:,:,1])
+    print("\n\n2th Feature:")
+    print(features[:,:,2])
+    print("\n\n3rd Feature:")
+    print(features[:,:,3])
 
     return features
 
